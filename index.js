@@ -20,13 +20,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.FRONTEND_URL, // Replace with your frontend URL
+    credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
     optionsSuccessStatus: 204,
-    // origin: 'http://192.168.29.116:3000',
-    // origin: 'http://localhost:3000',
-    // credentials: true
   })
 );
 
