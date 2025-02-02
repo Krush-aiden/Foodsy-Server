@@ -182,7 +182,9 @@ export const forgetPassword = async (req, res) => {
     await sendPasswordResetEmail(
       user.email,
       `${
-        environment == "prod" ? FRONTEND_URL_PROD : FRONTEND_URL_DEV
+        environment == "prod"
+          ? process.env.FRONTEND_URL_PROD
+          : process.env.FRONTEND_URL_DEV
       }/resetpassword/${resetToken}`
     );
 

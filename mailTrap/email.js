@@ -57,6 +57,8 @@ export const sendWelcomeEmail = async (req, res, email, name) => {
 };
 
 export const sendPasswordResetEmail = async (email, resetURL) => {
+  console.log("🚀 ~ sendPasswordResetEmail ~ resetURL:", resetURL);
+  console.log("🚀 ~ sendPasswordResetEmail ~ email:", email);
   const recipients = email;
   const htmlContent = generatePasswordResetEmailHtml(resetURL);
 
