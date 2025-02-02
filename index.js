@@ -30,7 +30,6 @@ app.use(
     origin: originVal, // Replace with your frontend URL
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    optionsSuccessStatus: 204,
   })
 );
 
