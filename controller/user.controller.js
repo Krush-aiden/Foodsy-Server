@@ -135,7 +135,6 @@ export const verifyEmail = async (req, res) => {
 
 //MARK:Logout
 export const logout = async (req, res) => {
-  console.log("🚀 ~ logout ~ res:");
   try {
     const environment = process.env.ENVIRONMENT;
 
