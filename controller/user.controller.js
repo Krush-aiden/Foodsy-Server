@@ -117,7 +117,7 @@ export const verifyEmail = async (req, res) => {
     }
     user.isVerified = true;
     user.verificationToken = undefined;
-    user.verificationTokenExpireAt = undefined;
+    user.verificationTokenExpiresAt = undefined;
     await user.save();
 
     //send welcome email
@@ -137,10 +137,10 @@ export const verifyEmail = async (req, res) => {
 export const logout = async (req, res) => {
   console.log("🚀 ~ logout ~ res:");
   try {
-    const ifproduction = process.env.ENVIRONMENT;
+    const environment = process.env.ENVIRONMENT;
 
     res.clearCookie("token", {
-      domain: ifproduction == "prod" ? process.env.COOKIEDOMAIN : "localhost",
+      domain: environment == "prod" ? process.env.COOKIEDOMAIN : "localhost",
       path: "/",
       sameSite: "none", // Allow cross-site cookies
       httpOnly: true,
@@ -177,10 +177,13 @@ export const forgetPassword = async (req, res) => {
     user.resetPasswordTokenExpiresAt = resetTokenExpiresAt;
     await user.save();
 
+    const environment = process.env.ENVIRONMENT;
     //send email
     await sendPasswordResetEmail(
       user.email,
-      `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`
+      `${
+        environment == "prod" ? FRONTEND_URL_PROD : FRONTEND_URL_DEV
+      }/resetpassword/${resetToken}`
     );
 
     return res.status(200).json({

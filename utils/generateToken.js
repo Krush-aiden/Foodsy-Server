@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const ifproduction = process.env.ENVIRONMENT;
+const environment = process.env.ENVIRONMENT;
 export const generateToken = (req, res, user) => {
   if (
     process.env.JWT_SECRET_KEY == "" ||
@@ -17,7 +17,7 @@ export const generateToken = (req, res, user) => {
   });
 
   res.cookie("token", token, {
-    domain: ifproduction == "prod" ? process.env.COOKIEDOMAIN : "localhost",
+    domain: environment == "prod" ? process.env.COOKIEDOMAIN : "localhost",
     path: "/",
     httpOnly: true,
     sameSite: "none", // Allow cross-site cookies
