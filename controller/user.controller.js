@@ -106,7 +106,7 @@ export const verifyEmail = async (req, res) => {
     const { verificationCode } = req.body;
     const user = await User.findOne({
       verificationToken: verificationCode,
-      verificationTokenExpireAt: { $gt: Date.now() },
+      // verificationTokenExpireAt: { $gt: Date.now() },
     }).select("-password");
 
     if (!user) {
@@ -137,8 +137,10 @@ export const verifyEmail = async (req, res) => {
 export const logout = async (req, res) => {
   console.log("🚀 ~ logout ~ res:");
   try {
+    const ifproduction = process.env.ENVIRONMENT;
+
     res.clearCookie("token", {
-      domain: "localhost",
+      domain: ifproduction == "prod" ? process.env.COOKIEDOMAIN : "localhost",
       path: "/",
       sameSite: "none", // Allow cross-site cookies
       httpOnly: true,
