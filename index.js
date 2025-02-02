@@ -18,9 +18,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+const originVal =
+  process.env.ENVIRONMENT === "prod"
+    ? process.env.FRONTEND_URL_PROD
+    : process.env.FRONTEND_URL_DEV;
+
+console.log("🚀 ~ originVal:", originVal);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // Replace with your frontend URL
+    origin: originVal, // Replace with your frontend URL
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 204,
