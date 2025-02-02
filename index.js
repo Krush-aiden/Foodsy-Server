@@ -41,8 +41,8 @@ app.use("/api/v1/restaurantRout", restaurantRout);
 app.use("/api/v1/menuRout", menuRout);
 // https://localhost:8000/api/v1/menuRout
 
-app.get("/hello", (req, res) => {
-  res.send("hello");
+app.get("/", (req, res) => {
+  res.send("hello from Foodsy Server");
 });
 
 app.listen(PORT, () => {
