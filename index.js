@@ -55,5 +55,5 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
   connectDB();
-  console.log(`Server listen at post ${PORT}`);
+  console.log(`Server listen at post : ${PORT}`);
 });
