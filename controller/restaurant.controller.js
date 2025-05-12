@@ -6,10 +6,17 @@ import { Order } from "../models/order.model.js";
 //MARK:createRestaurant
 export const createRestaurant = async (req, res) => {
   try {
-    const { restaurantName, city, country, price, deliveryTime, cuisines } =
-      req.body;
-    const file = req.file;
+    console.log(req.body);
+    console.log("🚀 ~ createRestaurant ~ req.file:", req.file);
+    const {
+      restaurantName,
+      restaurantCity: city, // Rename 'restaurantCity' to 'city'
+      restaurantCountry: country, // Rename 'restaurantCountry' to 'country'
+      restaurantEdt: deliveryTime, // Rename 'restaurantEdt' to 'deliveryTime'
+      restaurantCuisines: cuisines, // Rename 'restaurantCuisines' to 'cuisines'
+    } = req.body;
 
+    const file = req.file;
     const restaurant = await Restaurant.findOne({ user: req.id });
     if (restaurant) {
       return res.status(400).json({
@@ -23,15 +30,17 @@ export const createRestaurant = async (req, res) => {
         message: "Image is required",
       });
     }
-    const imgURL = await uploadImageOnCloudinary(file);
+    const imageUrl = await uploadImageOnCloudinary(file);
+    console.log("🚀 ~ createRestaurant ~ imgURL:", imageUrl);
+
     await Restaurant.create({
       user: req.id,
       restaurantName,
       city,
       country,
       deliveryTime,
-      cuisine: JSON.parse(cuisines),
-      imgURL,
+      cuisines,
+      imageUrl,
     });
     return res.status(201).json({
       success: true,
@@ -43,6 +52,7 @@ export const createRestaurant = async (req, res) => {
       message: "internal server error",
     });
   }
+  console.log("🚀 ~ createRestaurant ~ req.body:", req.body);
 };
 //MARK:getRestaurant
 export const getRestaurant = async (req, res) => {
