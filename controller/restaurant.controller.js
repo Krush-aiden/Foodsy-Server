@@ -13,8 +13,11 @@ export const createRestaurant = async (req, res) => {
       restaurantCity: city, // Rename 'restaurantCity' to 'city'
       restaurantCountry: country, // Rename 'restaurantCountry' to 'country'
       restaurantEdt: deliveryTime, // Rename 'restaurantEdt' to 'deliveryTime'
-      restaurantCuisines: cuisines, // Rename 'restaurantCuisines' to 'cuisines'
     } = req.body;
+
+    const restaurantCuisines = req.body.restaurantCuisines;
+    const cuisines = restaurantCuisines.split(",").map((item) => item.trim());
+    console.log("🚀 ~ createRestaurant ~ cuisines:", cuisines);
 
     const file = req.file;
     const restaurant = await Restaurant.findOne({ user: req.id });

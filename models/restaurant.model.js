@@ -22,22 +22,21 @@ const restaurantSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  cuisine: [
+  cuisines: {
+    type: [String],
+    required: true,
+  },
+  menus: [
     {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "menu",
       required: true,
     },
   ],
-  menus: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:"menu",
-    required: true,
-  }],
   imageUrl: {
     type: String,
     required: true,
   },
-
 });
 
 export const Restaurant = mongoose.model("Restaurant", restaurantSchema);
