@@ -261,17 +261,21 @@ export const updateProfile = async (req, res) => {
     const file = req?.file?.path;
 
     // upload image on cloudinary
-    let cloudinaryRes = "";
+    let cloudinaryRes = null;
+    let profilePictureName = undefined;
     if (file) {
-      cloudinaryRes = await cloudinary.uploader.upload(file, {
-        quality: "auto",
-        fetch_format: "auto",
-        resource_type: "auto",
-      });
+      try {
+        cloudinaryRes = await cloudinary.uploader.upload(file, {
+          quality: "auto",
+          fetch_format: "auto",
+          resource_type: "auto",
+        });
+        profilePictureName = cloudinaryRes.secure_url;
+      } catch (err) {
+        console.error("Cloudinary upload failed:", err);
+        // Optionally handle upload failure (e.g., return error or continue without image)
+      }
     }
-    const profilePictureName = cloudinaryRes.url
-      ? cloudinaryRes.url
-      : cloudinaryRes;
 
     const updateData = {
       fullName,

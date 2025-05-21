@@ -81,9 +81,16 @@ export const getRestaurant = async (req, res) => {
 //MARK:updateRestaurant
 export const updateRestaurant = async (req, res) => {
   try {
-    const { restaurantName, city, country, deliveryTime, cuisine } = req.body;
+    const {
+      restaurantName,
+      restaurantCity: city,
+      restaurantCountry: country,
+      restaurantEdt: deliveryTime,
+      restaurantCuisines: cuisine,
+    } = req.body;
+    console.log("🚀 ~ updateRestaurant ~ req.body:", req.body);
 
-    const restaurant = await Restaurant.find({ user: req.id });
+    const restaurant = await Restaurant.findOne({ user: req.id });
     if (!restaurant) {
       return res.status(404).json({
         success: false,
@@ -94,7 +101,10 @@ export const updateRestaurant = async (req, res) => {
     restaurant.city = city;
     restaurant.country = country;
     restaurant.deliveryTime = deliveryTime;
-    restaurant.cuisine = JSON.parse(cuisine);
+    restaurant.cuisine = cuisine;
+
+    const file = req.file;
+    console.log("🚀 ~ updateRestaurant ~ file:", file);
 
     if (file) {
       const imageUrl = await uploadImageOnCloudinary(file);

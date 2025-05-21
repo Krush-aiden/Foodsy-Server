@@ -18,8 +18,8 @@ router
   .post(isAuthenticated, upload.single("restaurantImage"), createRestaurant);
 router.route("/").get(isAuthenticated, getRestaurant);
 router
-  .route("/")
-  .put(isAuthenticated, upload.single("imageFile"), updateRestaurant);
+  .route("/restaurant/edit")
+  .put(isAuthenticated, upload.single("restaurantImage"), updateRestaurant);
 router.route("/order").get(isAuthenticated, getRestaurantOrder);
 router.route("/order/:orderId/status").post(isAuthenticated, updateOrderStatus);
 router.route("/search/:searchText").post(isAuthenticated, searchRestaurant);
