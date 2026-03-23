@@ -1,5 +1,6 @@
 // import { Multer } from "multer";
 import { Restaurant } from "../models/restaurant.model.js";
+import { Menu } from "../models/menu.model.js";
 import uploadImageOnCloudinary from "../utils/imageUpload.js";
 import { Order } from "../models/order.model.js";
 
@@ -13,6 +14,7 @@ export const createRestaurant = async (req, res) => {
       restaurantCity: city, // Rename 'restaurantCity' to 'city'
       restaurantCountry: country, // Rename 'restaurantCountry' to 'country'
       restaurantEdt: deliveryTime, // Rename 'restaurantEdt' to 'deliveryTime'
+      isActive,
     } = req.body;
 
     const restaurantCuisines = req.body.restaurantCuisines;
@@ -44,6 +46,10 @@ export const createRestaurant = async (req, res) => {
       deliveryTime,
       cuisines,
       imageUrl,
+      isActive:
+        isActive !== undefined
+          ? isActive === "true" || isActive === true
+          : true,
     });
     return res.status(201).json({
       success: true,
@@ -87,6 +93,7 @@ export const updateRestaurant = async (req, res) => {
       restaurantCountry: country,
       restaurantEdt: deliveryTime,
       restaurantCuisines: cuisine,
+      isActive,
     } = req.body;
     console.log("🚀 ~ updateRestaurant ~ req.body:", req.body);
 
@@ -101,7 +108,16 @@ export const updateRestaurant = async (req, res) => {
     restaurant.city = city;
     restaurant.country = country;
     restaurant.deliveryTime = deliveryTime;
-    restaurant.cuisine = cuisine;
+    restaurant.cuisines =
+      typeof cuisine === "string"
+        ? cuisine
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : cuisine;
+    if (isActive !== undefined) {
+      restaurant.isActive = isActive === "true" || isActive === true;
+    }
 
     const file = req.file;
     console.log("🚀 ~ updateRestaurant ~ file:", file);
@@ -121,6 +137,56 @@ export const updateRestaurant = async (req, res) => {
     return res.status(500).json({
       message: "Internal server error",
     });
+  }
+};
+
+//MARK:createOrder
+export const createOrder = async (req, res) => {
+  try {
+    const { restaurant, deliveryDetails, cartItems, totalAmount } = req.body;
+    if (
+      !restaurant ||
+      !deliveryDetails ||
+      !cartItems ||
+      cartItems.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+    const order = await Order.create({
+      user: req.id,
+      restaurant,
+      deliveryDetails,
+      cartItems,
+      totalAmount: Number(totalAmount),
+      status: "pending",
+    });
+    return res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      order,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//MARK:getUserOrders
+export const getUserOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.id })
+      .populate("restaurant")
+      .sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -162,7 +228,7 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
     order.status = status;
-    await Order.save();
+    await order.save();
     return res.status(201).json({
       success: true,
       message: "status updated",
@@ -185,24 +251,36 @@ export const searchRestaurant = async (req, res) => {
       .filter((cuisine) => cuisine);
 
     const query = {};
-    //basic search based on searchText (name, city, country)
+    //basic search based on searchText (name, city, country, cuisines)
     if (searchText) {
+      // Also search menus by name/description to find restaurants with matching items
+      const matchingMenus = await Menu.find({
+        $or: [
+          { name: { $regex: searchText, $options: "i" } },
+          { description: { $regex: searchText, $options: "i" } },
+        ],
+      }).select("_id");
+      const menuIds = matchingMenus.map((m) => m._id);
+
       query.$or = [
-        { restaurantName: { $regex: searchText, $option: "i" } },
-        { city: { $regex: searchText, $option: "i" } },
-        { country: { $regex: searchText, $option: "i" } },
+        { restaurantName: { $regex: searchText, $options: "i" } },
+        { city: { $regex: searchText, $options: "i" } },
+        { country: { $regex: searchText, $options: "i" } },
+        { cuisines: { $regex: searchText, $options: "i" } },
       ];
+      if (menuIds.length > 0) {
+        query.$or.push({ menus: { $in: menuIds } });
+      }
     }
     //filter on the basis of searchQuery
     if (searchQuery) {
       query.$or = [
-        { restaurantName: { $regex: searchText, $option: "i" } },
-        { cuisine: { $regex: searchQuery, $option: "i" } },
+        { restaurantName: { $regex: searchQuery, $options: "i" } },
+        { cuisines: { $regex: searchQuery, $options: "i" } },
       ];
     }
-    // console.log(query);
     if (selectedCuisines.length > 0) {
-      query.cuisine = { $in: selectedCuisines };
+      query.cuisines = { $in: selectedCuisines };
     }
     const restaurants = await Restaurant.find(query);
     return res.status(200).json({
@@ -223,7 +301,7 @@ export const getSingleRestaurant = async (req, res) => {
     const restaurantId = req.params.id;
     const restaurant = await Restaurant.findById(restaurantId).populate({
       path: "menus",
-      options: { created: -1 },
+      options: { sort: { createdAt: -1 } },
     });
     if (!restaurant) {
       return res.status(404).json({

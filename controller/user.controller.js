@@ -90,7 +90,7 @@ export const login = async (req, res) => {
 
     //send user without password
     const userWithoutPassword = await User.findOne({ email }).select(
-      "-password"
+      "-password",
     );
     return res.status(201).json({
       success: true,
@@ -162,7 +162,7 @@ export const googleLogin = async (req, res) => {
     await user.save();
 
     const userWithoutPassword = await User.findOne({ email }).select(
-      "-password"
+      "-password",
     );
 
     return res.status(200).json({
@@ -263,7 +263,7 @@ export const forgetPassword = async (req, res) => {
     //send email
     await sendPasswordResetEmail(
       user.email,
-      `${emailUrl}/resetpassword/${resetToken}`
+      `${emailUrl}/resetpassword/${resetToken}`,
     );
 
     return res.status(200).json({
@@ -336,7 +336,7 @@ export const checkAuth = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.id;
-    const { fullName, email, address, city, country } = req.body;
+    const { fullName, email, address, city, country, admin } = req.body;
     const file = req?.file?.path;
 
     // upload image on cloudinary
@@ -363,6 +363,9 @@ export const updateProfile = async (req, res) => {
       city,
       country,
     };
+    if (admin !== undefined) {
+      updateData.admin = admin === "true" || admin === true;
+    }
     if (profilePictureName) updateData.profilePictureName = profilePictureName;
 
     const user = await User.findByIdAndUpdate(userId, updateData, {

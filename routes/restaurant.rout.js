@@ -1,9 +1,11 @@
 import express from "express";
 import {
+  createOrder,
   createRestaurant,
   getRestaurant,
   getRestaurantOrder,
   getSingleRestaurant,
+  getUserOrders,
   searchRestaurant,
   updateOrderStatus,
   updateRestaurant,
@@ -21,8 +23,10 @@ router
   .route("/restaurant/edit")
   .put(isAuthenticated, upload.single("restaurantImage"), updateRestaurant);
 router.route("/order").get(isAuthenticated, getRestaurantOrder);
+router.route("/order/create").post(isAuthenticated, createOrder);
+router.route("/order/user").get(isAuthenticated, getUserOrders);
 router.route("/order/:orderId/status").post(isAuthenticated, updateOrderStatus);
-router.route("/search/:searchText").post(isAuthenticated, searchRestaurant);
-router.route("/:id").post(isAuthenticated, getSingleRestaurant);
+router.route("/search/:searchText").post(searchRestaurant);
+router.route("/:id").get(getSingleRestaurant);
 
 export default router;
