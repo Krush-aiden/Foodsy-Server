@@ -3,6 +3,7 @@ import cloudinary from "../utils/cloudinary.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import { User } from "../models/user.mode.js";
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 
 import {
   sendPasswordResetEmail,
@@ -15,6 +16,8 @@ import { generateToken } from "../utils/generateToken.js";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 //MARK:signUp
 export const signup = async (req, res) => {
@@ -97,6 +100,82 @@ export const login = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//MARK:Google Login
+export const googleLogin = async (req, res) => {
+  try {
+    const { googleToken } = req.body;
+    console.log("🚀 ~ googleLogin ~ req.body:", req.body);
+
+    if (!googleToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Google token required",
+      });
+    }
+
+    // ✅ Verify Google token with Google servers
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+    });
+    console.log("🚀 ~ googleLogin ~ ticket:", ticket);
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub: googleId } = payload;
+    console.log("🚀 ~ googleLogin ~ payload:", payload);
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user if doesn't exist
+      const hashedGoogleId = await bcrypt.hash(googleId, 10);
+      user = await User.create({
+        fullName: name,
+        email,
+        password: hashedGoogleId,
+        profilePictureName: picture,
+        googleId,
+        isVerified: true, // Google users are pre-verified
+        contact: 0,
+      });
+      console.log("🚀 ~ googleLogin ~ New user created:", user._id);
+    } else {
+      // Update existing user with Google ID if not already set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (!user.isVerified) user.isVerified = true;
+        await user.save();
+      }
+      if (!user.isVerified) {
+        user.isVerified = true;
+        await user.save();
+      }
+    }
+
+    // Generate and set JWT token
+    generateToken(req, res, user);
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    const userWithoutPassword = await User.findOne({ email }).select(
+      "-password"
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Welcome ${user.fullName}`,
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    console.log("🚀 ~ googleLogin ~ error:", error.message);
+    return res.status(401).json({
+      success: false,
+      message: "Google authentication failed",
+    });
   }
 };
 
