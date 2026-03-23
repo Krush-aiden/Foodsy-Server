@@ -11,7 +11,10 @@ import {
   sendVerificationEmail,
   sendWelcomeEmail,
 } from "../mailTrap/email.js";
-import { generateToken } from "../utils/generateToken.js";
+import {
+  generateToken,
+  getTokenCookieOptions,
+} from "../utils/generateToken.js";
 
 import dotenv from "dotenv";
 
@@ -215,15 +218,7 @@ export const verifyEmail = async (req, res) => {
 //MARK:Logout
 export const logout = async (req, res) => {
   try {
-    const environment = process.env.ENVIRONMENT;
-
-    res.clearCookie("token", {
-      domain: environment == "prod" ? process.env.COOKIEDOMAIN : "localhost",
-      path: "/",
-      sameSite: "none", // Allow cross-site cookies
-      httpOnly: true,
-      secure: true,
-    });
+    res.clearCookie("token", getTokenCookieOptions(false));
 
     return res.status(200).json({
       success: true,

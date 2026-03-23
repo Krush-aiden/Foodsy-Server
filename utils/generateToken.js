@@ -1,6 +1,26 @@
 import jwt from "jsonwebtoken";
 
 const environment = process.env.ENVIRONMENT;
+
+export const getTokenCookieOptions = (withExpiry = true) => {
+  const cookieOptions = {
+    path: "/",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  };
+
+  if (withExpiry) {
+    cookieOptions.maxAge = 24 * 60 * 60 * 1000;
+  }
+
+  if (environment !== "prod") {
+    cookieOptions.domain = "localhost";
+  }
+
+  return cookieOptions;
+};
+
 export const generateToken = (req, res, user) => {
   if (
     process.env.JWT_SECRET_KEY == "" ||
@@ -16,13 +36,6 @@ export const generateToken = (req, res, user) => {
     expiresIn: "1d",
   });
 
-  res.cookie("token", token, {
-    domain: environment == "prod" ? process.env.COOKIEDOMAIN : "localhost",
-    path: "/",
-    httpOnly: true,
-    sameSite: "none", // Allow cross-site cookies
-    secure: true,
-    maxAge: 24 * 60 * 60 * 1000,
-  });
+  res.cookie("token", token, getTokenCookieOptions());
   return token;
 };
