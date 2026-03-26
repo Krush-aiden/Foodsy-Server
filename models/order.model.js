@@ -30,11 +30,26 @@ const orderSchema = new mongoose.Schema(
     totalAmount: Number,
     status: {
       type: String,
-      enum: ["pending", "confirmed", "preparing", "outForDelivery", "delivery"],
+      enum: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "outForDelivery",
+        "delivered",
+        "cancelled",
+      ],
       required: true,
     },
+    cancelReason: { type: String },
+    paymentId: { type: String },
+    phonepeOrderId: { type: String },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Order = mongoose.model("Order", orderSchema);

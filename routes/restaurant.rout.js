@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  cancelOrder,
   createOrder,
   createRestaurant,
   getRestaurant,
@@ -26,6 +27,7 @@ router.route("/order").get(isAuthenticated, getRestaurantOrder);
 router.route("/order/create").post(isAuthenticated, createOrder);
 router.route("/order/user").get(isAuthenticated, getUserOrders);
 router.route("/order/:orderId/status").post(isAuthenticated, updateOrderStatus);
+router.route("/order/:orderId/cancel").post(isAuthenticated, cancelOrder);
 router.route("/search/:searchText").post(searchRestaurant);
 router.route("/:id").get(getSingleRestaurant);
 

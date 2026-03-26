@@ -219,7 +219,7 @@ export const getRestaurantOrder = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status, cancelReason } = req.body;
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({
@@ -228,6 +228,9 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
     order.status = status;
+    if (status === "cancelled" && cancelReason) {
+      order.cancelReason = cancelReason;
+    }
     await order.save();
     return res.status(201).json({
       success: true,
@@ -238,6 +241,37 @@ export const updateOrderStatus = async (req, res) => {
     return res.status(500).json({
       message: "Internal server error",
     });
+  }
+};
+
+//MARK:cancelOrder (user-side)
+export const cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+    if (order.user.toString() !== req.id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorised" });
+    }
+    if (!["pending", "confirmed"].includes(order.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Order can only be cancelled before preparation starts",
+      });
+    }
+    order.status = "cancelled";
+    order.cancelReason = req.body.cancelReason || "Cancelled by customer";
+    await order.save();
+    return res.status(200).json({ success: true, message: "Order cancelled" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

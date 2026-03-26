@@ -7,6 +7,7 @@ import connectDB from "./db/connectDB.js";
 import userRout from "./routes/user.rout.js";
 import restaurantRout from "./routes/restaurant.rout.js";
 import menuRout from "./routes/menu.rout.js";
+import paymentRout from "./routes/payment.rout.js";
 
 dotenv.config();
 
@@ -30,7 +31,7 @@ app.use(
     origin: originVal, // Replace with your frontend URL
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  })
+  }),
 );
 
 // console.log("🚀 ~ process.env.PORT:", process.env.PORT);
@@ -48,6 +49,9 @@ app.use("/api/v1/restaurantRout", restaurantRout);
 
 app.use("/api/v1/menuRout", menuRout);
 // https://localhost:8000/api/v1/menuRout
+
+app.use("/api/v1/payment", paymentRout);
+// https://localhost:8000/api/v1/payment
 
 app.get("/", (req, res) => {
   res.send("hello from Foodsy Server");
